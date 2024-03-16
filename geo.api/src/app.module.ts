@@ -4,9 +4,10 @@ import {
   NestModule,
   RequestMethod,
 } from '@nestjs/common';
-import { PointsModule } from './points/points.module';
+import { PointsModule } from './modules/points/points.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { LoggerMiddleware } from './middleware/logger';
+import { LoggerMiddleware } from './middlewares/logger';
+import { contoursModule } from './modules/contours/contours.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { LoggerMiddleware } from './middleware/logger';
       connectionName: 'geo',
     }),
     PointsModule,
+    contoursModule,
   ],
 })
 export class AppModule implements NestModule {

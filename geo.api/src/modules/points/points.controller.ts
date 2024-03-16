@@ -1,5 +1,4 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -9,20 +8,17 @@ import {
   Post,
 } from '@nestjs/common';
 import { PointsService } from './points.service';
-import { CreatePointDto } from './dto/create-point.dto';
-import { ResponseDto } from './dto/response.dto';
+import { CreatePointDto } from './dtos/create-point.dto';
+import { ResponseDto } from '../../common/dtos/response.dto';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { CoordinateValidator } from './common/CoordinateValidator';
-import { GeoData } from './common/GeoData';
-import { ObjectIdDto } from './dto/objectId.dto';
+import { GeoData } from '../../common/model/geoData';
+import { ObjectIdDto } from '../../common/dtos/objectId.dto';
+import { GeoType } from 'src/common/model/geoType';
 
 @ApiTags('Points')
 @Controller('Points')
 export class PointsController {
-  constructor(
-    private readonly pointService: PointsService,
-    private readonly coordinateValidator: CoordinateValidator,
-  ) {}
+  constructor(private readonly pointService: PointsService) {}
 
   @Get()
   @ApiResponse({
@@ -32,7 +28,7 @@ export class PointsController {
         {
           id: 1,
           data: {
-            type: 'point',
+            type: GeoType[GeoType.Point],
             coordinates: [1, 1],
           },
         },
@@ -50,7 +46,7 @@ export class PointsController {
         {
           id: 1,
           data: {
-            type: 'point',
+            type: GeoType[GeoType.Point],
             coordinates: [1, 1],
           },
         },
@@ -67,7 +63,10 @@ export class PointsController {
     type: CreatePointDto,
     examples: {
       a: {
-        value: { type: 'point', coordinates: [1, 1] } as CreatePointDto,
+        value: {
+          type: GeoType[GeoType.Point],
+          coordinates: [1, 1],
+        } as CreatePointDto,
       },
     },
   })
@@ -87,21 +86,7 @@ export class PointsController {
     @Param() params: ObjectIdDto,
     @Body() createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
-    if (
-      this.coordinateValidator.validate(
-        createPointDto.coordinates[0],
-        createPointDto.coordinates[1],
-      )
-    ) {
-      return this.pointService.update(params.id, createPointDto);
-    } else {
-      throw new BadRequestException('', {
-        cause: new Error(
-          'coordinate[0] should be between -180 and 180\n y should be between -90 and 90',
-        ),
-        description: 'Bad Request',
-      });
-    }
+    return this.pointService.update(params.id, createPointDto);
   }
 
   @Post()
@@ -109,7 +94,10 @@ export class PointsController {
     type: CreatePointDto,
     examples: {
       a: {
-        value: { type: 'point', coordinates: [1, 1] } as CreatePointDto,
+        value: {
+          type: GeoType[GeoType.Point],
+          coordinates: [1, 1],
+        } as CreatePointDto,
       },
     },
   })
@@ -119,7 +107,7 @@ export class PointsController {
       example: {
         id: 1,
         data: {
-          type: 'point',
+          type: GeoType[GeoType.Point],
           coordinates: [1, 1],
         },
       },
@@ -128,21 +116,7 @@ export class PointsController {
   async create(
     @Body() createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
-    if (
-      this.coordinateValidator.validate(
-        createPointDto.coordinates[0],
-        createPointDto.coordinates[1],
-      )
-    ) {
-      return await this.pointService.create(createPointDto);
-    } else {
-      throw new BadRequestException('', {
-        cause: new Error(
-          'coordinate[0] should be between -180 and 180\n y should be between -90 and 90',
-        ),
-        description: 'Bad Request',
-      });
-    }
+    return this.pointService.create(createPointDto);
   }
   @Delete(':id')
   @ApiResponse({
@@ -151,7 +125,7 @@ export class PointsController {
       example: {
         id: 1,
         data: {
-          type: 'point',
+          type: GeoType[GeoType.Point],
           coordinates: [1, 1],
         },
       },

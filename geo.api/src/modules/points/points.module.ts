@@ -2,8 +2,7 @@ import { Module } from '@nestjs/common';
 import { PointsController } from './points.controller';
 import { PointsService } from './points.service';
 import { MongooseModule } from '@nestjs/mongoose';
-import { PointSchema, Point } from './schema/point.schema';
-import { CoordinateValidator } from './common/CoordinateValidator';
+import { PointSchema, Point } from './schemas/point.schema';
 
 @Module({
   imports: [
@@ -13,6 +12,6 @@ import { CoordinateValidator } from './common/CoordinateValidator';
     ),
   ],
   controllers: [PointsController],
-  providers: [PointsService, CoordinateValidator],
+  providers: [PointsService],
 })
 export class PointsModule {}

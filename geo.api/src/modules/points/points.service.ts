@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { CreatePointDto } from './dto/create-point.dto';
-import { Point } from './schema/point.schema';
+import { CreatePointDto } from './dtos/create-point.dto';
+import { Point } from './schemas/point.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
-import { ResponseDto } from './dto/response.dto';
-import { GeoData } from './common/GeoData';
-import { GeoType } from './common/GeoType';
+import { ResponseDto } from '../../common/dtos/response.dto';
+import { GeoData } from '../../common/model/geoData';
+import { GeoType } from '../../common/model/geoType';
 
 @Injectable()
 export class PointsService {
