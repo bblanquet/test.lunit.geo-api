@@ -1,6 +1,4 @@
-import { GeoType } from './GeoType';
-
 export interface GeoData {
-  type: GeoType;
+  type: string;
   coordinates: Array<number>;
 }

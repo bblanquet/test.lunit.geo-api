@@ -3,14 +3,16 @@ import {
   Body,
   Controller,
   Get,
+  Param,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { PointsService } from './points.service';
 import { CreatePointDto } from './dto/create-point.dto';
 import { ResponseDto } from './dto/response.dto';
-import { Point } from './schema/point.schema';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
 import { CoordinateValidator } from './common/CoordinateValidator';
+import { GeoData } from './common/GeoData';
 
 @Controller('Points')
 export class PointsController {
@@ -27,18 +29,37 @@ export class PointsController {
         {
           id: 1,
           data: {
-            x: 1,
-            y: 1,
+            type: 'point',
+            coordinates: [1, 1],
           },
         },
       ],
     },
   })
-  list(): Promise<Array<ResponseDto<Point>>> {
-    return this.pointService.list();
+  findAll(): Promise<Array<ResponseDto<GeoData>>> {
+    return this.pointService.findAll();
   }
 
-  @Post()
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: [
+        {
+          id: 1,
+          data: {
+            type: 'point',
+            coordinates: [1, 1],
+          },
+        },
+      ],
+    },
+  })
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
+    return this.pointService.findOne(id);
+  }
+
+  @Patch(':id')
   @ApiBody({
     type: CreatePointDto,
     examples: {
@@ -59,9 +80,51 @@ export class PointsController {
       },
     },
   })
+  update(
+    @Param('id') id: string,
+    @Body() createPointDto: CreatePointDto,
+  ): Promise<ResponseDto<GeoData>> {
+    if (
+      this.coordinateValidator.validate(
+        createPointDto.coordinates[0],
+        createPointDto.coordinates[1],
+      )
+    ) {
+      return this.pointService.update(id, createPointDto);
+    } else {
+      throw new BadRequestException('', {
+        cause: new Error(
+          'coordinate[0] should be between -180 and 180\n y should be between -90 and 90',
+        ),
+        description: 'Bad Request',
+      });
+    }
+  }
+
+  @Post()
+  @ApiBody({
+    type: CreatePointDto,
+    examples: {
+      a: {
+        value: { type: 'point', coordinates: [1, 1] } as CreatePointDto,
+      },
+    },
+  })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        id: 1,
+        data: {
+          type: 'point',
+          coordinates: [1, 1],
+        },
+      },
+    },
+  })
   async create(
     @Body() createPointDto: CreatePointDto,
-  ): Promise<ResponseDto<Point>> {
+  ): Promise<ResponseDto<GeoData>> {
     if (
       this.coordinateValidator.validate(
         createPointDto.coordinates[0],

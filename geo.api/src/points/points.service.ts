@@ -4,6 +4,8 @@ import { Point } from './schema/point.schema';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
 import { ResponseDto } from './dto/response.dto';
+import { GeoData } from './common/GeoData';
+import { GeoType } from './common/GeoType';
 
 @Injectable()
 export class PointsService {
@@ -11,23 +13,62 @@ export class PointsService {
     @InjectModel(Point.name, 'geo') private pointModel: Model<Point>,
   ) {}
 
-  async list(): Promise<Array<ResponseDto<Point>>> {
+  async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
+    const response = await this.pointModel.findOne({ _id: id }).exec();
+    if (response.id) {
+      return new ResponseDto<GeoData>(response.id, {
+        type: GeoType[GeoType.Point],
+        coordinates: [response.x, response.y],
+      });
+    } else {
+      return null;
+    }
+  }
+
+  async findAll(): Promise<Array<ResponseDto<GeoData>>> {
     const response = await this.pointModel.find().exec();
     const result = response.map((item) => {
-      return new ResponseDto<Point>(item.id, { x: item.x, y: item.y });
+      return new ResponseDto<GeoData>(item.id, {
+        type: GeoType[GeoType.Point],
+        coordinates: [item.x, item.y],
+      });
     });
     return result;
   }
 
-  async create(createPointDto: CreatePointDto): Promise<ResponseDto<Point>> {
+  async create(createPointDto: CreatePointDto): Promise<ResponseDto<GeoData>> {
     const createdPoint = new this.pointModel({
       x: createPointDto.coordinates[0],
       y: createPointDto.coordinates[1],
     });
     const response = await createdPoint.save();
-    return new ResponseDto<Point>(response.id, {
-      x: response.x,
-      y: response.y,
+    return new ResponseDto<GeoData>(response.id, {
+      type: GeoType[GeoType.Point],
+      coordinates: [response.x, response.y],
     });
+  }
+  async update(
+    id: string,
+    createPointDto: CreatePointDto,
+  ): Promise<ResponseDto<GeoData>> {
+    const response = await this.pointModel.updateOne(
+      { _id: id },
+      {
+        x: createPointDto.coordinates[0],
+        y: createPointDto.coordinates[1],
+      },
+      { upsert: true },
+    );
+
+    return new ResponseDto<GeoData>(
+      response.upsertedCount === 1 ? response.upsertedId.toString() : id,
+      {
+        type: GeoType[GeoType.Point],
+        coordinates: [
+          createPointDto.coordinates[0],
+          createPointDto.coordinates[1],
+        ],
+      },
+    );
   }
 }
