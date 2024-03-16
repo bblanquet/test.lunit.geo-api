@@ -76,8 +76,8 @@ export class PointsController {
       example: {
         id: 1,
         data: {
-          x: 1,
-          y: 1,
+          type: GeoType[GeoType.Point],
+          coordinates: [1, 1],
         },
       },
     },
@@ -118,6 +118,7 @@ export class PointsController {
   ): Promise<ResponseDto<GeoData>> {
     return this.pointService.create(createPointDto);
   }
+
   @Delete(':id')
   @ApiResponse({
     status: 200,

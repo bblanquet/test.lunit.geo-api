@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsMongoId, IsString } from 'class-validator';
-import { MongoIdTransform } from '../../modules/points/pipes/mongoIdTransform';
+import { MongoIdTransform } from '../pipes/mongoIdTransform';
 
 export class ObjectIdDto {
   @ApiProperty({

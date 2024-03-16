@@ -41,4 +41,50 @@ export class ContoursService {
       coordinates: response.coordinates.map((coo) => [coo.x, coo.y]),
     });
   }
+
+  async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
+    const response = await this.contourModel.findOne({ _id: id }).exec();
+    if (response && response.id) {
+      return new ResponseDto<GeoData>(response.id, {
+        type: GeoType[GeoType.Polygon],
+        coordinates: response.coordinates.map((coo) => [coo.x, coo.y]),
+      });
+    } else {
+      return null;
+    }
+  }
+  async update(
+    id: string,
+    createPointDto: CreateContourDto,
+  ): Promise<ResponseDto<GeoData>> {
+    const response = await this.contourModel
+      .updateOne(
+        { _id: id },
+        {
+          coordinates: createPointDto.coordinates.map((coo) => {
+            return { x: coo[0], y: coo[1] };
+          }),
+        },
+        { upsert: true },
+      )
+      .exec();
+
+    return new ResponseDto<GeoData>(
+      response.upsertedCount === 1 ? response.upsertedId.toString() : id,
+      {
+        type: GeoType[GeoType.Polygon],
+        coordinates: createPointDto.coordinates,
+      },
+    );
+  }
+
+  async delete(id: string): Promise<ResponseDto<GeoData> | null> {
+    const findResponse = await this.findOne(id);
+    const response = await this.contourModel.deleteOne({ _id: id }).exec();
+    if (response.deletedCount === 1) {
+      return new ResponseDto<GeoData>(id, findResponse.data);
+    } else {
+      return null;
+    }
+  }
 }
