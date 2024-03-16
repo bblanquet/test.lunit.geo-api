@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -10,10 +11,12 @@ import {
 import { PointsService } from './points.service';
 import { CreatePointDto } from './dto/create-point.dto';
 import { ResponseDto } from './dto/response.dto';
-import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CoordinateValidator } from './common/CoordinateValidator';
 import { GeoData } from './common/GeoData';
+import { ObjectIdDto } from './dto/objectId.dto';
 
+@ApiTags('Points')
 @Controller('Points')
 export class PointsController {
   constructor(
@@ -55,8 +58,8 @@ export class PointsController {
     },
   })
   @Get(':id')
-  findOne(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
-    return this.pointService.findOne(id);
+  findOne(@Param() params: ObjectIdDto): Promise<ResponseDto<GeoData> | null> {
+    return this.pointService.findOne(params.id);
   }
 
   @Patch(':id')
@@ -81,7 +84,7 @@ export class PointsController {
     },
   })
   update(
-    @Param('id') id: string,
+    @Param() params: ObjectIdDto,
     @Body() createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
     if (
@@ -90,7 +93,7 @@ export class PointsController {
         createPointDto.coordinates[1],
       )
     ) {
-      return this.pointService.update(id, createPointDto);
+      return this.pointService.update(params.id, createPointDto);
     } else {
       throw new BadRequestException('', {
         cause: new Error(
@@ -140,5 +143,23 @@ export class PointsController {
         description: 'Bad Request',
       });
     }
+  }
+  @Delete(':id')
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: {
+        id: 1,
+        data: {
+          type: 'point',
+          coordinates: [1, 1],
+        },
+      },
+    },
+  })
+  async delete(
+    @Param() params: ObjectIdDto,
+  ): Promise<ResponseDto<GeoData> | null> {
+    return this.pointService.delete(params.id);
   }
 }

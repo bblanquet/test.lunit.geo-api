@@ -15,7 +15,7 @@ export class PointsService {
 
   async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
     const response = await this.pointModel.findOne({ _id: id }).exec();
-    if (response.id) {
+    if (response && response.id) {
       return new ResponseDto<GeoData>(response.id, {
         type: GeoType[GeoType.Point],
         coordinates: [response.x, response.y],
@@ -47,18 +47,21 @@ export class PointsService {
       coordinates: [response.x, response.y],
     });
   }
+
   async update(
     id: string,
     createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
-    const response = await this.pointModel.updateOne(
-      { _id: id },
-      {
-        x: createPointDto.coordinates[0],
-        y: createPointDto.coordinates[1],
-      },
-      { upsert: true },
-    );
+    const response = await this.pointModel
+      .updateOne(
+        { _id: id },
+        {
+          x: createPointDto.coordinates[0],
+          y: createPointDto.coordinates[1],
+        },
+        { upsert: true },
+      )
+      .exec();
 
     return new ResponseDto<GeoData>(
       response.upsertedCount === 1 ? response.upsertedId.toString() : id,
@@ -70,5 +73,15 @@ export class PointsService {
         ],
       },
     );
+  }
+
+  async delete(id: string): Promise<ResponseDto<GeoData> | null> {
+    const findResponse = await this.findOne(id);
+    const response = await this.pointModel.deleteOne({ _id: id }).exec();
+    if (response.deletedCount === 1) {
+      return new ResponseDto<GeoData>(id, findResponse.data);
+    } else {
+      return null;
+    }
   }
 }
