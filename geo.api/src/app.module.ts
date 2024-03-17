@@ -8,9 +8,15 @@ import { PointsModule } from './modules/points/points.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { LoggerMiddleware } from './middlewares/logger';
 import { contoursModule } from './modules/contours/contours.module';
+import configuration from './common/configuration';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [configuration],
+      isGlobal: true,
+    }),
     MongooseModule.forRoot('mongodb://admin:admin_password@localhost/geo', {
       connectionName: 'geo',
     }),

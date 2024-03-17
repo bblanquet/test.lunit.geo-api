@@ -3,6 +3,7 @@ import { ContoursService } from './contours.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Contour, ContourSchema } from './schemas/contour.schema';
 import { ContoursController } from './contours.controller';
+import DbPool from 'src/common/databases/dbPool';
 
 @Module({
   imports: [
@@ -12,6 +13,6 @@ import { ContoursController } from './contours.controller';
     ),
   ],
   controllers: [ContoursController],
-  providers: [ContoursService],
+  providers: [ContoursService, DbPool],
 })
 export class contoursModule {}

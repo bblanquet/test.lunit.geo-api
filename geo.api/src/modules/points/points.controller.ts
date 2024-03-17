@@ -6,38 +6,21 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { PointsService } from './points.service';
 import { CreatePointDto } from './dtos/create-point.dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GeoData } from '../../common/model/geoData';
 import { ObjectIdDto } from '../../common/dtos/objectId.dto';
 import { GeoType } from 'src/common/model/geoType';
+import { ContourDto } from './dtos/contours.dto';
 
 @ApiTags('Points')
 @Controller('Points')
 export class PointsController {
   constructor(private readonly pointService: PointsService) {}
-
-  @Get()
-  @ApiResponse({
-    status: 200,
-    schema: {
-      example: [
-        {
-          id: 1,
-          data: {
-            type: GeoType[GeoType.Point],
-            coordinates: [1, 1],
-          },
-        },
-      ],
-    },
-  })
-  findAll(): Promise<Array<ResponseDto<GeoData>>> {
-    return this.pointService.findAll();
-  }
 
   @ApiResponse({
     status: 200,
@@ -136,5 +119,31 @@ export class PointsController {
     @Param() params: ObjectIdDto,
   ): Promise<ResponseDto<GeoData> | null> {
     return this.pointService.delete(params.id);
+  }
+
+  @Get()
+  @ApiQuery({ name: 'contour', required: false, type: String })
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: [
+        {
+          id: 1,
+          data: {
+            type: GeoType[GeoType.Point],
+            coordinates: [1, 1],
+          },
+        },
+      ],
+    },
+  })
+  async contours(
+    @Query() query: ContourDto,
+  ): Promise<Array<ResponseDto<GeoData>>> {
+    if (query.contour) {
+      return this.pointService.contours(query.contour);
+    } else {
+      return this.pointService.findAll();
+    }
   }
 }

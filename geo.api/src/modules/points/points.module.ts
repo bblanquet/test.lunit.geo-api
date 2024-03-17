@@ -3,6 +3,7 @@ import { PointsController } from './points.controller';
 import { PointsService } from './points.service';
 import { MongooseModule } from '@nestjs/mongoose';
 import { PointSchema, Point } from './schemas/point.schema';
+import DbPool from 'src/common/databases/dbPool';
 
 @Module({
   imports: [
@@ -12,6 +13,6 @@ import { PointSchema, Point } from './schemas/point.schema';
     ),
   ],
   controllers: [PointsController],
-  providers: [PointsService],
+  providers: [PointsService, DbPool],
 })
 export class PointsModule {}
