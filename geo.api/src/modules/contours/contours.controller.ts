@@ -6,13 +6,15 @@ import {
   Patch,
   Post,
   Delete,
+  Query,
 } from '@nestjs/common';
 import { ContoursService } from './contours.service';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GeoData } from '../../common/model/geoData';
 import { ResponseDto } from 'src/common/dtos/response.dto';
 import { GeoType } from 'src/common/model/geoType';
 import { CreateContourDto } from './dtos/create-contours.dto';
+import { RequiredContourDto } from 'src/modules/contours/dtos/requiredcontour.dto';
 
 @ApiTags('Contours')
 @Controller('Contours')
@@ -175,7 +177,11 @@ export class ContoursController {
     },
   })
   @Get(':id/intersections')
-  intersection(@Param() id: string): Promise<ResponseDto<GeoData> | null> {
-    return this.contoursService.findOne(id);
+  @ApiQuery({ name: 'contour', required: true, type: String })
+  async intersection(
+    @Param('id') id: string,
+    @Query() query: RequiredContourDto,
+  ): Promise<Array<ResponseDto<GeoData>>> {
+    return this.contoursService.intersect(id, query.contour);
   }
 }

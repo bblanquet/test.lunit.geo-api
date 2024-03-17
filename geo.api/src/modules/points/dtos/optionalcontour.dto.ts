@@ -1,6 +1,6 @@
 import { IsOptional, IsString } from 'class-validator';
 
-export class ContourDto {
+export class OptionalContourDto {
   @IsString()
   @IsOptional()
   contour: string;

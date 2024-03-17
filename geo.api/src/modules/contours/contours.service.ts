@@ -95,4 +95,38 @@ export class ContoursService {
       return null;
     }
   }
+
+  async intersect(
+    id: string,
+    contourId: string,
+  ): Promise<Array<ResponseDto<GeoData>>> {
+    const id1 = 'id1';
+    const id2 = 'id2';
+    const coos1 = 'coos1';
+    const coos2 = 'coos2';
+    const query = `SELECT a.id AS ${id1}, 
+                        b.id AS ${id2},
+                        ST_AsText(a.coordinates) AS ${coos1},
+                        ST_AsText(b.coordinates) AS ${coos2}
+                    FROM contours AS a
+                    JOIN contours AS b
+                        ON a.id = $1 AND b.id = $2
+                    WHERE ST_Intersects(a.coordinates, b.coordinates);`;
+    const values = [id, contourId];
+    const rows = await this.dbPool.query(query, values);
+    if (rows.length === 1) {
+      return [
+        new ResponseDto<GeoData>(rows[0][id1], {
+          type: GeoType[GeoType.Polygon],
+          coordinates: formatPolygon(rows[0][coos1]),
+        }),
+        new ResponseDto<GeoData>(rows[0][id2], {
+          type: GeoType[GeoType.Polygon],
+          coordinates: formatPolygon(rows[0][coos2]),
+        }),
+      ];
+    } else {
+      return new Array<ResponseDto<GeoData>>();
+    }
+  }
 }
