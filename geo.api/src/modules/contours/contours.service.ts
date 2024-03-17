@@ -1,9 +1,6 @@
 import { Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
-import { InjectModel } from '@nestjs/mongoose';
 import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
-import { Contour } from './schemas/contour.schema';
 import { ResponseDto } from 'src/common/dtos/response.dto';
 import { CreateContourDto } from './dtos/create-contours.dto';
 import DbPool from 'src/common/databases/dbPool';
@@ -11,23 +8,25 @@ import { formatPolygon } from 'src/common/utils';
 
 @Injectable()
 export class ContoursService {
-  constructor(
-    private dbPool: DbPool,
-    @InjectModel(Contour.name, 'geo') private contourModel: Model<Contour>,
-  ) {}
+  private id: string;
+  private coordinates: string;
+  private tablename: string;
+  constructor(private dbPool: DbPool) {
+    this.id = 'id';
+    this.coordinates = 'coordinates';
+    this.tablename = 'contours';
+  }
 
   async findAll(): Promise<Array<ResponseDto<GeoData>>> {
-    const idProp = 'id';
-    const coosProp = 'coordinates';
-    const query = `SELECT ${idProp} as ${idProp}, ST_AsText(${coosProp}) as ${coosProp} FROM contours`;
+    const query = `SELECT id as ${this.id}, ST_AsText(coordinates) as ${this.coordinates} FROM ${this.tablename}`;
     const values = [];
 
     const rows = await this.dbPool.query(query, values);
     const result = rows.map(
       (item) =>
-        new ResponseDto<GeoData>(item[idProp], {
+        new ResponseDto<GeoData>(item[this.id], {
           type: GeoType[GeoType.Polygon],
-          coordinates: formatPolygon(item[coosProp]),
+          coordinates: formatPolygon(item[this.coordinates]),
         }),
     );
     return result;
@@ -36,8 +35,7 @@ export class ContoursService {
   async create(
     createContourDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    const query =
-      'INSERT INTO contours (coordinates) VALUES (ST_GeomFromText($1, 4326)) RETURNING id;';
+    const query = `INSERT INTO ${this.tablename} (coordinates) VALUES (ST_GeomFromText($1, 4326)) RETURNING id;`;
     const values = [
       `POLYGON((${createContourDto.coordinates.map((coo) => `${coo[0]} ${coo[1]}`).join(',')}))`,
     ];
@@ -49,48 +47,38 @@ export class ContoursService {
   }
 
   async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
-    const idProp = 'id';
-    const coosProp = 'coordinates';
-    const query = `SELECT ${idProp} as ${idProp}, ST_AsText(${coosProp}) as ${coosProp} FROM contours where ${idProp} = $1;`;
+    const query = `SELECT id as ${this.id}, ST_AsText(coordinates) as ${this.coordinates} FROM ${this.tablename} where id = $1;`;
     const values = [id];
 
     const rows = await this.dbPool.query(query, values);
 
-    return new ResponseDto<GeoData>(rows[0][idProp], {
+    return new ResponseDto<GeoData>(rows[0][this.id], {
       type: GeoType[GeoType.Polygon],
-      coordinates: formatPolygon(rows[0][coosProp]),
+      coordinates: formatPolygon(rows[0][this.coordinates]),
     });
   }
   async update(
     id: string,
-    createPointDto: CreateContourDto,
+    createContourDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    const response = await this.contourModel
-      .updateOne(
-        { _id: id },
-        {
-          coordinates: createPointDto.coordinates.map((coo) => {
-            return { x: coo[0], y: coo[1] };
-          }),
-        },
-        { upsert: true },
-      )
-      .exec();
-
-    return new ResponseDto<GeoData>(
-      response.upsertedCount === 1 ? response.upsertedId.toString() : id,
-      {
-        type: GeoType[GeoType.Polygon],
-        coordinates: createPointDto.coordinates,
-      },
-    );
+    const query = `UPDATE ${this.tablename} SET coordinates = $1 where id = $2 RETURNING id;`;
+    const values = [
+      `POLYGON((${createContourDto.coordinates.map((coo) => `${coo[0]} ${coo[1]}`).join(',')}))`,
+      id,
+    ];
+    const rows = await this.dbPool.query(query, values);
+    return new ResponseDto<GeoData>(rows[0].id, {
+      type: GeoType[GeoType.Polygon],
+      coordinates: createContourDto.coordinates,
+    });
   }
 
   async delete(id: string): Promise<ResponseDto<GeoData> | null> {
-    const findResponse = await this.findOne(id);
-    const response = await this.contourModel.deleteOne({ _id: id }).exec();
-    if (response.deletedCount === 1) {
-      return new ResponseDto<GeoData>(id, findResponse.data);
+    const query = `DELETE FROM ${this.tablename} where id = $1 RETURNING id;`;
+    const values = [id];
+    const rows = await this.dbPool.query(query, values);
+    if (rows.length === 1) {
+      return new ResponseDto<null>(id, null);
     } else {
       return null;
     }

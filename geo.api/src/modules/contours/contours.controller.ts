@@ -74,8 +74,11 @@ export class ContoursController {
         value: {
           type: GeoType[GeoType.Polygon],
           coordinates: [
-            [1, 1],
-            [1, 1],
+            [25, 25],
+            [35, 25],
+            [35, 35],
+            [25, 35],
+            [25, 25],
           ],
         } as CreateContourDto,
       },

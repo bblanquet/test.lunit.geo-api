@@ -133,14 +133,10 @@ export class PointsController {
     schema: {
       example: {
         id: 1,
-        data: {
-          type: GeoType[GeoType.Point],
-          coordinates: [1, 1],
-        },
       },
     },
   })
-  async delete(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
+  async delete(@Param('id') id: string): Promise<ResponseDto<null> | null> {
     return this.pointService.delete(id);
   }
 }
