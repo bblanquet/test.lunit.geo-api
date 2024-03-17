@@ -27,8 +27,8 @@ async function sendPostRequest(coordinates) {
 async function sendMultipleRequests(numRequests) {
     for (let i = 0; i < numRequests; i++) {
         const sideLength = Math.random() * (10 - 5) + 5; // Random side length between 5 and 10
-        const centerX = Math.random() * (170 - -170) - 170;
-        const centerY = Math.random() * (80 - -80) - 80;
+        const centerX = Math.random() * 340 - 170;
+        const centerY = Math.random() * 160 - 80;
         const coordinates = [
             [centerX - sideLength / 2, centerY - sideLength / 2],
             [centerX + sideLength / 2, centerY - sideLength / 2],
@@ -36,7 +36,6 @@ async function sendMultipleRequests(numRequests) {
             [centerX - sideLength / 2, centerY + sideLength / 2],
             [centerX - sideLength / 2, centerY - sideLength / 2],
         ];
-        console.log(coordinates.map((c) => c.join(' ')).join(', '));
         await sendPostRequest(coordinates);
     }
 }

@@ -3,8 +3,8 @@ const axios = require('axios');
 function generateRandomCoordinates() {
     const min = -180;
     const max = 180;
-    const randomLongitude = Math.random() * (180 - 180) + 180;
-    const randomLatitude = Math.random() * (90 - 90) + 90;
+    const randomLongitude = Math.random() * 360 - 180;
+    const randomLatitude = Math.random() * 180 - 90;
     return [randomLongitude, randomLatitude];
 }
 
