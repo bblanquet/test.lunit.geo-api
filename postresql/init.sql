@@ -15,10 +15,3 @@ CREATE TABLE contours (
 CREATE INDEX contours_coordinates_gist_idx
 ON contours
 USING GIST (coordinates);
-
-
-
-INSERT INTO points (coordinate)
-VALUES (ST_SetSRID(ST_MakePoint(-122.5, 37.5), 4326)),
-       (ST_SetSRID(ST_MakePoint(-122.6, 37.6), 4326)),
-       (ST_SetSRID(ST_MakePoint(-122.4, 37.4), 4326));
