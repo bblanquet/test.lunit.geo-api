@@ -44,6 +44,11 @@ docker build -t lunit/geo.api:latest ./geo.api
 docker compose -f .\docker\lunit\docker-compose.yaml up
 ```
 
+4. swagger
+``` shell
+http://localhost:3000/api
+```
+
 # 3. Usage
 The API provides endpoints for managing Point and Contour data.
 
@@ -76,13 +81,14 @@ Contours:
 - DELETE /polygons/{id}: Delete a polygon by ID.
 
 # 4. Testing
-## 4.1 Swagger
-```
-https://localhost:3000/api
-```
+## 4.1 Prerequisite
+- npm
+- node-18
+
 ## 4.2 Unit tests
 ``` shell
 cd geo.api
+npm install
 npm run test
 ```
 ## 4.3 Dummy data scripts

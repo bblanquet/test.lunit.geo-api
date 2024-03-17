@@ -82,4 +82,32 @@ describe('ContoursService', () => {
       [2, 5],
     ]);
   });
+  it('should return the intersected data #3', async () => {
+    const id = '3';
+    const contourId = '4';
+    const value = [
+      {
+        coordinates:
+          'GEOMETRYCOLLECTION(POLYGON((0 1,1 1)),POLYGON((3 1,4 1)),POLYGON((2 2,6 6)),LINESTRING(3 1,1 1))',
+      },
+    ];
+    contoursDao.interesect.mockResolvedValue(value);
+    const result = await contoursService.interesect(id, contourId);
+
+    expect(result[0].data.type).toEqual(GeoType[GeoType.Polygon]);
+    expect(result[0].data.coordinates).toEqual([
+      [0, 1],
+      [1, 1],
+    ]);
+    expect(result[1].data.type).toEqual(GeoType[GeoType.Polygon]);
+    expect(result[1].data.coordinates).toEqual([
+      [3, 1],
+      [4, 1],
+    ]);
+    expect(result[2].data.type).toEqual(GeoType[GeoType.Polygon]);
+    expect(result[2].data.coordinates).toEqual([
+      [2, 2],
+      [6, 6],
+    ]);
+  });
 });
