@@ -9,7 +9,7 @@ async function bootstrap() {
   });
   app.useGlobalPipes(new ValidationPipe());
   const config = new DocumentBuilder()
-    .setTitle('geo api')
+    .setTitle('LUNIT geo api')
     .setVersion('1.0')
     .build();
   const document = SwaggerModule.createDocument(app, config);
