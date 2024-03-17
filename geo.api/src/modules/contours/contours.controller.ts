@@ -15,6 +15,7 @@ import { ResponseDto } from 'src/common/dtos/response.dto';
 import { GeoType } from 'src/common/model/geoType';
 import { CreateContourDto } from './dtos/create-contours.dto';
 import { RequiredContourDto } from 'src/modules/contours/dtos/requiredcontour.dto';
+import { DataDto } from 'src/common/dtos/data.dto';
 
 @ApiTags('Contours')
 @Controller('Contours')
@@ -68,19 +69,21 @@ export class ContoursController {
 
   @Post()
   @ApiBody({
-    type: CreateContourDto,
+    type: DataDto<CreateContourDto>,
     examples: {
       a: {
         value: {
-          type: GeoType[GeoType.Polygon],
-          coordinates: [
-            [25, 25],
-            [35, 25],
-            [35, 35],
-            [25, 35],
-            [25, 25],
-          ],
-        } as CreateContourDto,
+          data: {
+            type: GeoType[GeoType.Polygon],
+            coordinates: [
+              [25, 25],
+              [35, 25],
+              [35, 35],
+              [25, 35],
+              [25, 25],
+            ],
+          },
+        } as DataDto<CreateContourDto>,
       },
     },
   })
@@ -100,23 +103,25 @@ export class ContoursController {
     },
   })
   async create(
-    @Body() createContourDto: CreateContourDto,
+    @Body() createContourDto: DataDto<CreateContourDto>,
   ): Promise<ResponseDto<GeoData>> {
-    return await this.contoursService.create(createContourDto);
+    return await this.contoursService.create(createContourDto.data);
   }
 
   @Patch(':id')
   @ApiBody({
-    type: CreateContourDto,
+    type: DataDto<CreateContourDto>,
     examples: {
       a: {
         value: {
-          type: GeoType[GeoType.Polygon],
-          coordinates: [
-            [1, 1],
-            [1, 1],
-          ],
-        } as CreateContourDto,
+          data: {
+            type: GeoType[GeoType.Polygon],
+            coordinates: [
+              [1, 1],
+              [1, 1],
+            ],
+          },
+        } as DataDto<CreateContourDto>,
       },
     },
   })
@@ -137,9 +142,9 @@ export class ContoursController {
   })
   update(
     @Param('id') id: string,
-    @Body() createPointDto: CreateContourDto,
+    @Body() createPointDto: DataDto<CreateContourDto>,
   ): Promise<ResponseDto<GeoData>> {
-    return this.contoursService.update(id, createPointDto);
+    return this.contoursService.update(id, createPointDto.data);
   }
 
   @Delete(':id')
@@ -185,6 +190,6 @@ export class ContoursController {
     @Param('id') id: string,
     @Query() query: RequiredContourDto,
   ): Promise<Array<ResponseDto<GeoData>>> {
-    return this.contoursService.intersect(id, query.contour);
+    return this.contoursService.interesect(id, query.contour);
   }
 }

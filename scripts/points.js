@@ -12,8 +12,10 @@ const endpointUrl = 'http://localhost:3000/points';
 
 async function sendPostRequest(coordinates) {
     const requestBody = {
-        type: "Point",
-        coordinates: coordinates
+        data: {
+            type: "Point",
+            coordinates: coordinates
+        }
     };
 
     try {

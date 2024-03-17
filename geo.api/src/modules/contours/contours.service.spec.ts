@@ -9,6 +9,7 @@ describe('ContoursService', () => {
   beforeEach(() => {
     contoursDao = {
       findOne: jest.fn(),
+      interesect: jest.fn(),
     } as unknown as jest.Mocked<ContoursDao>;
     contoursService = new ContoursService(contoursDao);
   });
@@ -31,5 +32,54 @@ describe('ContoursService', () => {
     expect(result.id).toEqual(contourId);
     expect(result.data.type).toEqual(GeoType[GeoType.Polygon]);
     expect(contoursDao.findOne).toHaveBeenCalledWith(contourId);
+  });
+  it('should return the intersected data', async () => {
+    const id = '3';
+    const contourId = '4';
+    const value = [
+      {
+        coordinates:
+          'GEOMETRYCOLLECTION(POLYGON((0 1,1 1,1 0,0 0,0 1)),POLYGON((3 1,4 1,4 0,3 0,3 1)),LINESTRING(3 1,1 1))',
+      },
+    ];
+    contoursDao.interesect.mockResolvedValue(value);
+    const result = await contoursService.interesect(id, contourId);
+
+    expect(result[0].data.type).toEqual(GeoType[GeoType.Polygon]);
+    expect(result[0].data.coordinates).toEqual([
+      [0, 1],
+      [1, 1],
+      [1, 0],
+      [0, 0],
+      [0, 1],
+    ]);
+    expect(result[1].data.type).toEqual(GeoType[GeoType.Polygon]);
+    expect(result[1].data.coordinates).toEqual([
+      [3, 1],
+      [4, 1],
+      [4, 0],
+      [3, 0],
+      [3, 1],
+    ]);
+  });
+  it('should return the intersected data #2', async () => {
+    const id = '3';
+    const contourId = '4';
+    const value = [
+      {
+        coordinates: 'POLYGON((2 5,5 5,5 2,2 2,2 5))',
+      },
+    ];
+    contoursDao.interesect.mockResolvedValue(value);
+    const result = await contoursService.interesect(id, contourId);
+
+    expect(result[0].data.type).toEqual(GeoType[GeoType.Polygon]);
+    expect(result[0].data.coordinates).toEqual([
+      [2, 5],
+      [5, 5],
+      [5, 2],
+      [2, 2],
+      [2, 5],
+    ]);
   });
 });

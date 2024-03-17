@@ -4,8 +4,10 @@ const endpointUrl = 'http://localhost:3000/contours';
 
 async function sendPostRequest(coordinates) {
     const requestBody = {
-        type: 'Polygon',
-        coordinates: coordinates,
+        data: {
+            type: 'Polygon',
+            coordinates: coordinates,
+        }
     };
 
     try {

@@ -15,6 +15,7 @@ import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GeoData } from '../../common/model/geoData';
 import { GeoType } from 'src/common/model/geoType';
 import { OptionalContourDto } from './dtos/optionalcontour.dto';
+import { DataDto } from 'src/common/dtos/data.dto';
 
 @ApiTags('Points')
 @Controller('Points')
@@ -68,13 +69,15 @@ export class PointsController {
 
   @Patch(':id')
   @ApiBody({
-    type: CreatePointDto,
+    type: DataDto<CreatePointDto>,
     examples: {
       a: {
         value: {
-          type: GeoType[GeoType.Point],
-          coordinates: [1, 1],
-        } as CreatePointDto,
+          data: {
+            type: GeoType[GeoType.Point],
+            coordinates: [1, 1],
+          },
+        } as DataDto<CreatePointDto>,
       },
     },
   })
@@ -92,20 +95,22 @@ export class PointsController {
   })
   update(
     @Param('id') id: string,
-    @Body() createPointDto: CreatePointDto,
+    @Body() createPointDto: DataDto<CreatePointDto>,
   ): Promise<ResponseDto<GeoData>> {
-    return this.pointService.update(id, createPointDto);
+    return this.pointService.update(id, createPointDto.data);
   }
 
   @Post()
   @ApiBody({
-    type: CreatePointDto,
+    type: DataDto<CreatePointDto>,
     examples: {
       a: {
         value: {
-          type: GeoType[GeoType.Point],
-          coordinates: [1, 1],
-        } as CreatePointDto,
+          data: {
+            type: GeoType[GeoType.Point],
+            coordinates: [1, 1],
+          } as CreatePointDto,
+        },
       },
     },
   })
@@ -118,13 +123,13 @@ export class PointsController {
           type: GeoType[GeoType.Point],
           coordinates: [1, 1],
         },
-      },
+      } as DataDto<CreatePointDto>,
     },
   })
   async create(
-    @Body() createPointDto: CreatePointDto,
+    @Body() createPointDto: DataDto<CreatePointDto>,
   ): Promise<ResponseDto<GeoData>> {
-    return this.pointService.create(createPointDto);
+    return this.pointService.create(createPointDto.data);
   }
 
   @Delete(':id')

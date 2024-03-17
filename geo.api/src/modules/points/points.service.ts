@@ -4,7 +4,7 @@ import { ResponseDto } from '../../common/dtos/response.dto';
 import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
 import { PointsDAO } from './points.dao';
-import { formatPoint } from '../../common/utils';
+import { getPoint } from '../../common/utils';
 
 @Injectable()
 export class PointsService {
@@ -55,7 +55,7 @@ export class PointsService {
   ): ResponseDto<GeoData> {
     const responseCoordinates = coordinates
       ? coordinates
-      : formatPoint(row.coordinate);
+      : getPoint(row.coordinate);
     return new ResponseDto<GeoData>(row.id, {
       type: GeoType[GeoType.Point],
       coordinates: responseCoordinates,

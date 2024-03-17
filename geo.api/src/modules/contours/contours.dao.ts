@@ -48,14 +48,7 @@ export class ContoursDao {
   }
 
   async interesect(id: string, contourId: string): Promise<any[]> {
-    const id1 = 'id1';
-    const id2 = 'id2';
-    const coos1 = 'coos1';
-    const coos2 = 'coos2';
-    const query = `SELECT a.id AS ${id1}, 
-                        b.id AS ${id2},
-                        ST_AsText(a.coordinates) AS ${coos1},
-                        ST_AsText(b.coordinates) AS ${coos2}
+    const query = `SELECT ST_AsText(ST_Intersection(a.coordinates, b.coordinates)) AS ${this._coordinates}
                     FROM contours AS a
                     JOIN contours AS b
                         ON a.id = $1 AND b.id = $2

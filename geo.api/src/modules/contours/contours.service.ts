@@ -4,7 +4,7 @@ import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
 import { CreateContourDto } from './dtos/create-contours.dto';
 import { ContoursDao } from './contours.dao';
-import { formatPolygon } from '../../common/utils';
+import { getPolygon, getPolygonCollection } from '../../common/utils';
 
 @Injectable()
 export class ContoursService {
@@ -52,26 +52,18 @@ export class ContoursService {
     return new ResponseDto<null>(id, null);
   }
 
-  async intersect(
+  async interesect(
     id: string,
     contourId: string,
   ): Promise<Array<ResponseDto<GeoData>>> {
-    const id1 = 'id1';
-    const id2 = 'id2';
-    const coos1 = 'coos1';
-    const coos2 = 'coos2';
     const rows = await this._contoursDao.interesect(id, contourId);
     if (rows.length === 1) {
-      return [
-        new ResponseDto<GeoData>(rows[0][id1], {
+      return getPolygonCollection(rows[0][this._coordinates]).map((coos) => {
+        return new ResponseDto<GeoData>('', {
           type: GeoType[GeoType.Polygon],
-          coordinates: formatPolygon(rows[0][coos1]),
-        }),
-        new ResponseDto<GeoData>(rows[0][id2], {
-          type: GeoType[GeoType.Polygon],
-          coordinates: formatPolygon(rows[0][coos2]),
-        }),
-      ];
+          coordinates: coos,
+        });
+      });
     } else {
       return new Array<ResponseDto<GeoData>>();
     }
@@ -85,7 +77,7 @@ export class ContoursService {
       type: GeoType[GeoType.Polygon],
       coordinates: coordinates
         ? coordinates
-        : formatPolygon(row[this._coordinates]),
+        : getPolygon(row[this._coordinates]),
     });
   }
 }
