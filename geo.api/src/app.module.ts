@@ -5,10 +5,11 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { PointsModule } from './modules/points/points.module';
-import { LoggerMiddleware } from './middlewares/logger';
+import { RequestLoggerMiddleware } from './middlewares/requestLogger';
 import { contoursModule } from './modules/contours/contours.module';
 import configuration from './common/configuration';
 import { ConfigModule } from '@nestjs/config';
+import { ResponseLoggerMiddleware } from './middlewares/responseLogger';
 
 @Module({
   imports: [
@@ -23,7 +24,10 @@ import { ConfigModule } from '@nestjs/config';
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
-      .apply(LoggerMiddleware)
+      .apply(RequestLoggerMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+    consumer
+      .apply(ResponseLoggerMiddleware)
       .forRoutes({ path: '*', method: RequestMethod.ALL });
   }
 }

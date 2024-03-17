@@ -3,15 +3,15 @@ import { CreatePointDto } from './dtos/create-point.dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
-import { formatPoint } from 'src/common/utils';
 import { PointsDAO } from './points.dao';
+import { formatPoint } from '../../common/utils';
 
 @Injectable()
 export class PointsService {
   constructor(private readonly _pointsDAO: PointsDAO) {}
 
   async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
-    const row = await this._pointsDAO.getPointById(id);
+    const row = await this._pointsDAO.findOne(id);
     if (!row) {
       return null;
     }
@@ -19,12 +19,12 @@ export class PointsService {
   }
 
   async findAll(): Promise<ResponseDto<GeoData>[]> {
-    const rows = await this._pointsDAO.getAllPoints();
+    const rows = await this._pointsDAO.findAll();
     return rows.map((row) => this.mapRowToResponseDto(row));
   }
 
   async create(createPointDto: CreatePointDto): Promise<ResponseDto<GeoData>> {
-    const row = await this._pointsDAO.createPoint(createPointDto.coordinates);
+    const row = await this._pointsDAO.create(createPointDto.coordinates);
     return this.mapRowToResponseDto(row, createPointDto.coordinates);
   }
 
@@ -32,23 +32,20 @@ export class PointsService {
     id: string,
     createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
-    const row = await this._pointsDAO.updatePoint(
-      id,
-      createPointDto.coordinates,
-    );
+    const row = await this._pointsDAO.update(id, createPointDto.coordinates);
     return this.mapRowToResponseDto(row, createPointDto.coordinates);
   }
 
   async delete(id: string): Promise<ResponseDto<null>> {
-    const row = await this._pointsDAO.deletePoint(id);
+    const row = await this._pointsDAO.delete(id);
     if (!row) {
       throw new NotFoundException('Point not found');
     }
     return new ResponseDto<null>(id, null);
   }
 
-  async contours(id: string): Promise<ResponseDto<GeoData>[]> {
-    const rows = await this._pointsDAO.getPointsWithinContour(id);
+  async findContained(id: string): Promise<ResponseDto<GeoData>[]> {
+    const rows = await this._pointsDAO.findContained(id);
     return rows.map((row) => this.mapRowToResponseDto(row));
   }
 

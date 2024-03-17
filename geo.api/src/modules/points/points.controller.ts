@@ -41,7 +41,7 @@ export class PointsController {
     @Query() query: OptionalContourDto,
   ): Promise<Array<ResponseDto<GeoData>>> {
     if (query.contour) {
-      return this.pointService.contours(query.contour);
+      return this.pointService.findContained(query.contour);
     } else {
       return this.pointService.findAll();
     }

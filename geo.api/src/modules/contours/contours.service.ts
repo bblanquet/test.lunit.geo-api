@@ -4,7 +4,7 @@ import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
 import { CreateContourDto } from './dtos/create-contours.dto';
 import { ContoursDao } from './contours.dao';
-import { formatPolygon } from 'src/common/utils';
+import { formatPolygon } from '../../common/utils';
 
 @Injectable()
 export class ContoursService {
@@ -14,21 +14,19 @@ export class ContoursService {
   constructor(private readonly _contoursDao: ContoursDao) {}
 
   async findAll(): Promise<Array<ResponseDto<GeoData>>> {
-    const rows = await this._contoursDao.findAllContours();
+    const rows = await this._contoursDao.findAll();
     return rows.map((row) => this.mapRowToResponseDto(row));
   }
 
   async create(
     createContourDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    const newRow = await this._contoursDao.createContour(
-      createContourDto.coordinates,
-    );
+    const newRow = await this._contoursDao.create(createContourDto.coordinates);
     return this.mapRowToResponseDto(newRow, createContourDto.coordinates);
   }
 
   async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
-    const row = await this._contoursDao.findContourById(id);
+    const row = await this._contoursDao.findOne(id);
     if (!row) {
       throw new NotFoundException('Contour not found');
     }
@@ -39,7 +37,7 @@ export class ContoursService {
     id: string,
     createContourDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    const updatedRow = await this._contoursDao.updateContour(
+    const updatedRow = await this._contoursDao.update(
       id,
       createContourDto.coordinates,
     );
@@ -47,7 +45,7 @@ export class ContoursService {
   }
 
   async delete(id: string): Promise<ResponseDto<null> | null> {
-    const deletedRow = await this._contoursDao.deleteContour(id);
+    const deletedRow = await this._contoursDao.delete(id);
     if (!deletedRow) {
       return null;
     }
@@ -62,10 +60,7 @@ export class ContoursService {
     const id2 = 'id2';
     const coos1 = 'coos1';
     const coos2 = 'coos2';
-    const rows = await this._contoursDao.findIntersectingContours(
-      id,
-      contourId,
-    );
+    const rows = await this._contoursDao.interesect(id, contourId);
     if (rows.length === 1) {
       return [
         new ResponseDto<GeoData>(rows[0][id1], {

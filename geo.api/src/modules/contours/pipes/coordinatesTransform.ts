@@ -2,16 +2,15 @@ import { BadRequestException } from '@nestjs/common';
 
 export const coordinatesTransform = ({ value }) => {
   const v = value as Array<Array<number>>;
-  const idValid = v.every((item) => {
+  const idValid = v.every((items) => {
     return (
-      item.length === 2 &&
-      -180 <= item[0] &&
-      item[0] <= 180 &&
-      -90 <= item[1] &&
-      item[1] <= 90
+      items.length === 2 &&
+      -180 <= items[0] &&
+      items[0] <= 180 &&
+      -90 <= items[1] &&
+      items[1] <= 90
     );
   });
-
   if (idValid) {
     return v;
   } else {

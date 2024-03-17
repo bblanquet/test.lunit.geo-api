@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import DbPool from 'src/common/databases/dbPool';
+import DbPool from '../../common/databases/dbPool';
 
 @Injectable()
 export class ContoursDao {
@@ -9,12 +9,12 @@ export class ContoursDao {
 
   constructor(private readonly _dbPool: DbPool) {}
 
-  async findAllContours(): Promise<any[]> {
+  async findAll(): Promise<any[]> {
     const query = `SELECT id as ${this._id}, ST_AsText(coordinates) as ${this._coordinates} FROM ${this._tablename}`;
     return await this._dbPool.query(query, []);
   }
 
-  async createContour(coordinates: number[][]): Promise<any> {
+  async create(coordinates: number[][]): Promise<any> {
     const query = `INSERT INTO ${this._tablename} (coordinates) VALUES (ST_GeomFromText($1, 4326)) RETURNING id;`;
     const values = [
       `POLYGON((${coordinates.map((coo) => `${coo[0]} ${coo[1]}`).join(',')}))`,
@@ -23,14 +23,14 @@ export class ContoursDao {
     return rows[0];
   }
 
-  async findContourById(id: string): Promise<any> {
+  async findOne(id: string): Promise<any> {
     const query = `SELECT id as ${this._id}, ST_AsText(coordinates) as ${this._coordinates} FROM ${this._tablename} where id = $1;`;
     const values = [id];
     const rows = await this._dbPool.query(query, values);
     return rows.length === 1 ? rows[0] : null;
   }
 
-  async updateContour(id: string, coordinates: number[][]): Promise<any> {
+  async update(id: string, coordinates: number[][]): Promise<any> {
     const query = `UPDATE ${this._tablename} SET coordinates = $1 where id = $2 RETURNING id;`;
     const values = [
       `POLYGON((${coordinates.map((coo) => `${coo[0]} ${coo[1]}`).join(',')}))`,
@@ -40,17 +40,14 @@ export class ContoursDao {
     return rows[0];
   }
 
-  async deleteContour(id: string): Promise<any> {
+  async delete(id: string): Promise<any> {
     const query = `DELETE FROM ${this._tablename} where id = $1 RETURNING id;`;
     const values = [id];
     const rows = await this._dbPool.query(query, values);
     return rows.length === 1 ? rows[0] : null;
   }
 
-  async findIntersectingContours(
-    id: string,
-    contourId: string,
-  ): Promise<any[]> {
+  async interesect(id: string, contourId: string): Promise<any[]> {
     const id1 = 'id1';
     const id2 = 'id2';
     const coos1 = 'coos1';
