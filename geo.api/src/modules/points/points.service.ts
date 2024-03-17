@@ -1,84 +1,54 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreatePointDto } from './dtos/create-point.dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
-import DbPool from 'src/common/databases/dbPool';
 import { formatPoint } from 'src/common/utils';
+import { PointsDAO } from './points.dao';
 
 @Injectable()
 export class PointsService {
-  private _id: string;
-  private _coordinate: string;
-  private _tablename: string;
-
-  constructor(private dbPool: DbPool) {
-    this._id = 'id';
-    this._coordinate = 'coordinate';
-    this._tablename = 'points';
-  }
+  constructor(private readonly _pointsDAO: PointsDAO) {}
 
   async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
-    const rows = await this.dbPool.query(
-      `SELECT id as ${this._id}, ST_AsText(coordinate) as ${this._coordinate} FROM ${this._tablename} where id = $1`,
-      [id],
-    );
-    if (1 === rows.length) {
-      return this.mapRowToResponseDto(rows[0]);
-    } else {
+    const row = await this._pointsDAO.getPointById(id);
+    if (!row) {
       return null;
     }
+    return this.mapRowToResponseDto(row);
   }
 
-  async findAll(): Promise<Array<ResponseDto<GeoData>>> {
-    const rows = await this.dbPool.query(
-      `SELECT id as ${this._id}, ST_AsText(coordinate) as ${this._coordinate} FROM ${this._tablename}`,
-      [],
-    );
+  async findAll(): Promise<ResponseDto<GeoData>[]> {
+    const rows = await this._pointsDAO.getAllPoints();
     return rows.map((row) => this.mapRowToResponseDto(row));
   }
 
   async create(createPointDto: CreatePointDto): Promise<ResponseDto<GeoData>> {
-    const query = `INSERT INTO ${this._tablename} (coordinate) VALUES (ST_SetSRID(ST_MakePoint($1, $2), 4326)) RETURNING id;`;
-    const values = [
-      `${createPointDto.coordinates[0]}`,
-      `${createPointDto.coordinates[1]}`,
-    ];
-    const rows = await this.dbPool.query(query, values);
-    return this.mapRowToResponseDto(rows[0], createPointDto.coordinates);
+    const row = await this._pointsDAO.createPoint(createPointDto.coordinates);
+    return this.mapRowToResponseDto(row, createPointDto.coordinates);
   }
 
   async update(
     id: string,
     createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
-    const query = `UPDATE ${this._tablename} SET coordinate = ST_SetSRID(ST_MakePoint($1, $2), 4326) where id = $3 RETURNING id;`;
-    const values = [
-      `${createPointDto.coordinates[0]}`,
-      `${createPointDto.coordinates[1]}`,
+    const row = await this._pointsDAO.updatePoint(
       id,
-    ];
-    const rows = await this.dbPool.query(query, values);
-    return this.mapRowToResponseDto(rows[0], createPointDto.coordinates);
+      createPointDto.coordinates,
+    );
+    return this.mapRowToResponseDto(row, createPointDto.coordinates);
   }
 
-  async delete(id: string): Promise<ResponseDto<null> | null> {
-    const query = `DELETE FROM ${this._tablename} where id = $1 RETURNING id;`;
-    const values = [id];
-    const rows = await this.dbPool.query(query, values);
-    if (rows.length === 1) {
-      return new ResponseDto<null>(id, null);
-    } else {
-      return null;
+  async delete(id: string): Promise<ResponseDto<null>> {
+    const row = await this._pointsDAO.deletePoint(id);
+    if (!row) {
+      throw new NotFoundException('Point not found');
     }
+    return new ResponseDto<null>(id, null);
   }
 
   async contours(id: string): Promise<ResponseDto<GeoData>[]> {
-    const query = `SELECT points.id as ${this._id}, ST_AsText(points.coordinate) as ${this._coordinate}
-        FROM ${this._tablename} JOIN contours ON ST_Contains(contours.coordinates, points.coordinate)
-        WHERE contours.id = $1;`;
-    const values = [id];
-    const rows = await this.dbPool.query(query, values);
+    const rows = await this._pointsDAO.getPointsWithinContour(id);
     return rows.map((row) => this.mapRowToResponseDto(row));
   }
 
@@ -88,8 +58,8 @@ export class PointsService {
   ): ResponseDto<GeoData> {
     const responseCoordinates = coordinates
       ? coordinates
-      : formatPoint(row[this._coordinate]);
-    return new ResponseDto<GeoData>(row[this._id], {
+      : formatPoint(row.coordinate);
+    return new ResponseDto<GeoData>(row.id, {
       type: GeoType[GeoType.Point],
       coordinates: responseCoordinates,
     });
