@@ -31,7 +31,7 @@ The solution has a standard architecture, an `app` mades of modules, Each module
 ## 2.2 Installation steps
 1. Clone the repository:
 ``` shell
-git clone https://github.com/bblanquet/lunit.geo-api.git
+git clone https://github.com/bblanquet/lunit.geo-api.git .
 ```
 
 2. dockerize API:
