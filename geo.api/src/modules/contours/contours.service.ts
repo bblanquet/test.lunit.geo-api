@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { GeoData } from '../../common/model/geoData';
 import { GeoType } from '../../common/model/geoType';
 import { ResponseDto } from 'src/common/dtos/response.dto';
@@ -8,60 +8,48 @@ import { formatPolygon } from 'src/common/utils';
 
 @Injectable()
 export class ContoursService {
-  private id: string;
-  private coordinates: string;
-  private tablename: string;
+  private _id: string;
+  private _coordinates: string;
+  private _tablename: string;
   constructor(private dbPool: DbPool) {
-    this.id = 'id';
-    this.coordinates = 'coordinates';
-    this.tablename = 'contours';
+    this._id = 'id';
+    this._coordinates = 'coordinates';
+    this._tablename = 'contours';
   }
 
   async findAll(): Promise<Array<ResponseDto<GeoData>>> {
-    const query = `SELECT id as ${this.id}, ST_AsText(coordinates) as ${this.coordinates} FROM ${this.tablename}`;
+    const query = `SELECT id as ${this._id}, ST_AsText(coordinates) as ${this._coordinates} FROM ${this._tablename}`;
     const values = [];
 
     const rows = await this.dbPool.query(query, values);
-    const result = rows.map(
-      (item) =>
-        new ResponseDto<GeoData>(item[this.id], {
-          type: GeoType[GeoType.Polygon],
-          coordinates: formatPolygon(item[this.coordinates]),
-        }),
-    );
-    return result;
+    return rows.map((row) => this.mapRowToResponseDto(row));
   }
 
   async create(
     createContourDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    const query = `INSERT INTO ${this.tablename} (coordinates) VALUES (ST_GeomFromText($1, 4326)) RETURNING id;`;
+    const query = `INSERT INTO ${this._tablename} (coordinates) VALUES (ST_GeomFromText($1, 4326)) RETURNING id;`;
     const values = [
       `POLYGON((${createContourDto.coordinates.map((coo) => `${coo[0]} ${coo[1]}`).join(',')}))`,
     ];
     const rows = await this.dbPool.query(query, values);
-    return new ResponseDto<GeoData>(rows[0].id, {
-      type: GeoType[GeoType.Polygon],
-      coordinates: createContourDto.coordinates,
-    });
+    return this.mapRowToResponseDto(rows[0]);
   }
 
   async findOne(id: string): Promise<ResponseDto<GeoData> | null> {
-    const query = `SELECT id as ${this.id}, ST_AsText(coordinates) as ${this.coordinates} FROM ${this.tablename} where id = $1;`;
+    const query = `SELECT id as ${this._id}, ST_AsText(coordinates) as ${this._coordinates} FROM ${this._tablename} where id = $1;`;
     const values = [id];
-
     const rows = await this.dbPool.query(query, values);
-
-    return new ResponseDto<GeoData>(rows[0][this.id], {
-      type: GeoType[GeoType.Polygon],
-      coordinates: formatPolygon(rows[0][this.coordinates]),
-    });
+    if (!rows[0]) {
+      throw new NotFoundException('Contour not found');
+    }
+    return this.mapRowToResponseDto(rows[0]);
   }
   async update(
     id: string,
     createContourDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    const query = `UPDATE ${this.tablename} SET coordinates = $1 where id = $2 RETURNING id;`;
+    const query = `UPDATE ${this._tablename} SET coordinates = $1 where id = $2 RETURNING id;`;
     const values = [
       `POLYGON((${createContourDto.coordinates.map((coo) => `${coo[0]} ${coo[1]}`).join(',')}))`,
       id,
@@ -74,7 +62,7 @@ export class ContoursService {
   }
 
   async delete(id: string): Promise<ResponseDto<GeoData> | null> {
-    const query = `DELETE FROM ${this.tablename} where id = $1 RETURNING id;`;
+    const query = `DELETE FROM ${this._tablename} where id = $1 RETURNING id;`;
     const values = [id];
     const rows = await this.dbPool.query(query, values);
     if (rows.length === 1) {
@@ -116,5 +104,12 @@ export class ContoursService {
     } else {
       return new Array<ResponseDto<GeoData>>();
     }
+  }
+
+  private mapRowToResponseDto(row: any): ResponseDto<GeoData> {
+    return new ResponseDto<GeoData>(row[this._id], {
+      type: GeoType[GeoType.Polygon],
+      coordinates: formatPolygon(row[this._coordinates]),
+    });
   }
 }
