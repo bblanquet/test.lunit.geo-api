@@ -13,7 +13,6 @@ import { GeoData } from '../../common/model/geoData';
 import { ResponseDto } from 'src/common/dtos/response.dto';
 import { GeoType } from 'src/common/model/geoType';
 import { CreateContourDto } from './dtos/create-contours.dto';
-import { ObjectIdDto } from 'src/common/dtos/objectId.dto';
 
 @ApiTags('Contours')
 @Controller('Contours')
@@ -61,8 +60,8 @@ export class ContoursController {
     },
   })
   @Get(':id')
-  findOne(@Param() params: ObjectIdDto): Promise<ResponseDto<GeoData> | null> {
-    return this.contoursService.findOne(params.id);
+  findOne(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
+    return this.contoursService.findOne(id);
   }
 
   @Post()
@@ -132,10 +131,10 @@ export class ContoursController {
     },
   })
   update(
-    @Param() params: ObjectIdDto,
+    @Param('id') id: string,
     @Body() createPointDto: CreateContourDto,
   ): Promise<ResponseDto<GeoData>> {
-    return this.contoursService.update(params.id, createPointDto);
+    return this.contoursService.update(id, createPointDto);
   }
 
   @Delete(':id')
@@ -154,9 +153,29 @@ export class ContoursController {
       },
     },
   })
-  async delete(
-    @Param() params: ObjectIdDto,
-  ): Promise<ResponseDto<GeoData> | null> {
-    return this.contoursService.delete(params.id);
+  async delete(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
+    return this.contoursService.delete(id);
+  }
+
+  @ApiResponse({
+    status: 200,
+    schema: {
+      example: [
+        {
+          id: 1,
+          data: {
+            type: GeoType[GeoType.Polygon],
+            coordinates: [
+              [1, 1],
+              [1, 1],
+            ],
+          },
+        },
+      ],
+    },
+  })
+  @Get(':id/intersections')
+  intersection(@Param() id: string): Promise<ResponseDto<GeoData> | null> {
+    return this.contoursService.findOne(id);
   }
 }

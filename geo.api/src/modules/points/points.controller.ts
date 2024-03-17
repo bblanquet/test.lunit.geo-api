@@ -13,7 +13,6 @@ import { CreatePointDto } from './dtos/create-point.dto';
 import { ResponseDto } from '../../common/dtos/response.dto';
 import { ApiBody, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { GeoData } from '../../common/model/geoData';
-import { ObjectIdDto } from '../../common/dtos/objectId.dto';
 import { GeoType } from 'src/common/model/geoType';
 import { ContourDto } from './dtos/contours.dto';
 
@@ -37,8 +36,8 @@ export class PointsController {
     },
   })
   @Get(':id')
-  findOne(@Param() params: ObjectIdDto): Promise<ResponseDto<GeoData> | null> {
-    return this.pointService.findOne(params.id);
+  findOne(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
+    return this.pointService.findOne(id);
   }
 
   @Patch(':id')
@@ -66,10 +65,10 @@ export class PointsController {
     },
   })
   update(
-    @Param() params: ObjectIdDto,
+    @Param('id') id: string,
     @Body() createPointDto: CreatePointDto,
   ): Promise<ResponseDto<GeoData>> {
-    return this.pointService.update(params.id, createPointDto);
+    return this.pointService.update(id, createPointDto);
   }
 
   @Post()
@@ -115,10 +114,8 @@ export class PointsController {
       },
     },
   })
-  async delete(
-    @Param() params: ObjectIdDto,
-  ): Promise<ResponseDto<GeoData> | null> {
-    return this.pointService.delete(params.id);
+  async delete(@Param('id') id: string): Promise<ResponseDto<GeoData> | null> {
+    return this.pointService.delete(id);
   }
 
   @Get()
@@ -137,7 +134,7 @@ export class PointsController {
       ],
     },
   })
-  async contours(
+  async findAll(
     @Query() query: ContourDto,
   ): Promise<Array<ResponseDto<GeoData>>> {
     if (query.contour) {
